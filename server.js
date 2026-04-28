@@ -319,13 +319,18 @@ app.post("/send-reminder", async (req, res) => {
 app.get("/test", (req, res) => {
   res.send("Backend is working ✅");
 });
+app.get("/", (req, res) => {
+  res.send("MediMind AI backend is running 🚀");
+});
 
 // 🚀 START SERVER
-app.listen(3000, () => {
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
   console.log("Server running on http://localhost:3000");
 });
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-app.get("/", (req, res) => {
-  res.send("MediMind AI backend is running 🚀");
-});
+

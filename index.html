@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediMind — Your Health Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1e2631;
+    --border: #2a3441;
+    --accent: #00e5a0;
+    --accent2: #0099ff;
+    --danger: #ff4d6d;
+    --warn: #ffaa00;
+    --text: #e8edf3;
+    --muted: #7a8899;
+    --radius: 14px;
+    --font-display: 'DM Serif Display', serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(0,229,160,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,153,255,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ══════════════════════════════════════
+     AUTH SCREEN
+  ══════════════════════════════════════ */
+  #auth-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 24px; position: relative; z-index: 1;
+  }
+
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 44px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    animation: fadeUp 0.5s ease;
+  }
+
+  .auth-logo {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
+  }
+
+  .logo-icon {
+    width: 42px; height: 42px; background: var(--accent);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  .logo-text {
+    font-family: var(--font-display);
+    font-size: 26px; color: var(--text);
+  }
+
+  .auth-title {
+    font-family: var(--font-display);
+    font-size: 28px; margin-bottom: 6px;
+  }
+
+  .auth-sub {
+    color: var(--muted); font-size: 14px; margin-bottom: 32px;
+  }
+
+  .tab-row {
+    display: flex; background: var(--bg);
+    border-radius: 10px; padding: 4px; margin-bottom: 28px;
+  }
+
+  .tab-btn {
+    flex: 1; padding: 9px; border: none; background: transparent;
+    color: var(--muted); font-family: var(--font-body); font-size: 14px;
+    font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent); color: #000; font-weight: 600;
+  }
+
+  .form-group { margin-bottom: 18px; }
+
+  .form-label {
+    display: block; font-size: 13px; font-weight: 500;
+    color: var(--muted); margin-bottom: 7px; letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .form-input {
+    width: 100%; padding: 13px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: var(--font-body); font-size: 15px;
+    transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,160,0.12);
+  }
+
+  .btn-primary {
+    width: 100%; padding: 14px;
+    background: var(--accent); color: #000;
+    border: none; border-radius: 10px;
+    font-family: var(--font-body); font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; margin-top: 4px;
+  }
+
+  .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); }
+
+  .auth-error {
+    background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3);
+    color: var(--danger); padding: 11px 14px; border-radius: 8px;
+    font-size: 13px; margin-bottom: 16px; display: none;
+  }
+
+  /* ══════════════════════════════════════
+     APP LAYOUT
+  ══════════════════════════════════════ */
+  #app { display: none; min-height: 100vh; position: relative; z-index: 1; }
+
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 240px; background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 24px 0; z-index: 100;
+  }
+
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 20px 28px; border-bottom: 1px solid var(--border);
+  }
+
+  .nav-section { padding: 20px 12px 0; flex: 1; }
+
+  .nav-label {
+    font-size: 10px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 0 8px; margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    cursor: pointer; transition: all 0.18s;
+    color: var(--muted); font-size: 14px; font-weight: 500;
+    margin-bottom: 2px; border: none; background: transparent;
+    width: 100%; text-align: left;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+
+  .nav-item.active {
+    background: rgba(0,229,160,0.12);
+    color: var(--accent);
+  }
+
+  .nav-item .nav-icon { font-size: 17px; width: 20px; text-align: center; }
+
+  .sidebar-user {
+    margin: 0 12px; padding: 12px;
+    background: var(--surface2); border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .user-avatar {
+    width: 36px; height: 36px; background: var(--accent);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #000; font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--text); truncate: true; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--muted); }
+
+  .logout-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 16px; padding: 4px;
+  }
+  .logout-btn:hover { color: var(--danger); }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 240px; padding: 32px;
+    min-height: 100vh;
+  }
+
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+
+  .page-header { margin-bottom: 28px; }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 32px; color: var(--text); margin-bottom: 4px;
+  }
+
+  .page-sub { color: var(--muted); font-size: 15px; }
+
+  /* ── DASHBOARD CARDS ── */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 22px;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--accent); }
+
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+
+  .stat-value {
+    font-family: var(--font-display); font-size: 36px; color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .dash-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+  }
+
+  .card-title {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── MEDICINE REMINDER ── */
+  .reminder-form {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+  }
+
+  .form-row {
+    display: grid; grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 12px; align-items: end;
+  }
+
+  .btn-add {
+    padding: 13px 18px; background: var(--accent); color: #000;
+    border: none; border-radius: 10px; font-weight: 600;
+    cursor: pointer; font-size: 15px; white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .btn-add:hover { background: #00ffb3; }
+
+  .medicine-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .medicine-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px;
+    transition: border-color 0.2s;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .medicine-item.taken { border-color: var(--accent); opacity: 0.7; }
+
+  .med-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+
+  .med-icon.morning { background: rgba(255,170,0,0.15); }
+  .med-icon.afternoon { background: rgba(0,153,255,0.15); }
+  .med-icon.evening { background: rgba(0,229,160,0.15); }
+  .med-icon.night { background: rgba(108,70,200,0.15); }
+
+  .med-info { flex: 1; }
+  .med-name { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+  .med-meta { font-size: 13px; color: var(--muted); }
+
+  .med-time {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 10px;
+    font-size: 13px; font-weight: 500; color: var(--muted);
+  }
+
+  .med-actions { display: flex; gap: 8px; }
+
+  .btn-take {
+    padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent);
+  }
+
+  .btn-take:hover { background: var(--accent); color: #000; }
+  .btn-take.taken-btn { background: var(--accent); color: #000; }
+
+  .btn-del {
+    padding: 7px 10px; border-radius: 8px; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+  }
+
+  .btn-del:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* ── CHAT ── */
+  .chat-container {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    height: calc(100vh - 200px); display: flex; flex-direction: column;
+  }
+
+  .chat-messages {
+    flex: 1; overflow-y: auto; padding: 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .msg { display: flex; gap: 12px; max-width: 80%; animation: fadeIn 0.3s ease; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+
+  .msg.user .msg-avatar { background: var(--accent); color: #000; font-weight: 700; }
+  .msg.ai .msg-avatar { background: var(--surface2); border: 1px solid var(--border); }
+
+  .msg-bubble {
+    padding: 13px 16px; border-radius: 14px;
+    font-size: 14px; line-height: 1.6;
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--accent); color: #000;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg.ai .msg-bubble {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); border-bottom-left-radius: 4px;
+  }
+
+  .chat-input-row {
+    padding: 16px 20px; border-top: 1px solid var(--border);
+    display: flex; gap: 10px; background: var(--surface);
+  }
+
+  .chat-input {
+    flex: 1; padding: 13px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: var(--font-body); font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .chat-input:focus { border-color: var(--accent); }
+
+  .btn-send {
+    padding: 13px 20px; background: var(--accent); color: #000;
+    border: none; border-radius: 10px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; font-size: 18px;
+  }
+
+  .btn-send:hover { background: #00ffb3; }
+  .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── SYMPTOMS ── */
+  .symptom-grid {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
+  }
+
+  .symptom-tag {
+    padding: 8px 14px; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+    font-size: 13px; cursor: pointer; transition: all 0.2s; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .symptom-tag:hover, .symptom-tag.selected {
+    border-color: var(--accent); color: var(--accent);
+    background: rgba(0,229,160,0.08);
+  }
+
+  .symptom-custom {
+    display: flex; gap: 10px; margin-bottom: 20px;
+  }
+
+  .selected-symptoms {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+    min-height: 40px; padding: 12px;
+    background: var(--bg); border: 1px dashed var(--border);
+    border-radius: 10px;
+  }
+
+  .sel-chip {
+    padding: 5px 10px; background: rgba(0,229,160,0.12);
+    border: 1px solid rgba(0,229,160,0.3); border-radius: 6px;
+    font-size: 12px; color: var(--accent);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .sel-chip .rm { cursor: pointer; opacity: 0.7; }
+  .sel-chip .rm:hover { opacity: 1; }
+
+  .symptom-result {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+    font-size: 14px; line-height: 1.8; color: var(--text);
+    white-space: pre-wrap;
+    display: none; animation: fadeIn 0.3s ease;
+  }
+
+  /* ── LOADING ── */
+  .typing {
+    display: flex; align-items: center; gap: 6px; padding: 13px 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 14px; border-bottom-left-radius: 4px;
+  }
+
+  .dot {
+    width: 7px; height: 7px; background: var(--muted); border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); background: var(--accent); }
+  }
+
+  /* ── NOTIFICATIONS ── */
+  .notif-dot {
+    width: 8px; height: 8px; background: var(--danger);
+    border-radius: 50%; display: inline-block; margin-left: auto;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 48px 24px; color: var(--muted);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── TODAY SCHEDULE MINI ── */
+  .schedule-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+
+  .schedule-item:last-child { border-bottom: none; }
+
+  .schedule-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  .schedule-info { flex: 1; }
+  .schedule-name { font-size: 13px; font-weight: 500; }
+  .schedule-time { font-size: 12px; color: var(--muted); }
+
+  .badge {
+    padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  }
+
+  .badge-pending { background: rgba(255,170,0,0.15); color: var(--warn); }
+  .badge-taken { background: rgba(0,229,160,0.15); color: var(--accent); }
+  .badge-missed { background: rgba(255,77,109,0.15); color: var(--danger); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── SELECT STYLING ── */
+  select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%237a8899' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    background-size: 16px; padding-right: 36px;
+    cursor: pointer;
+  }
+
+  select.form-input option { background: var(--surface); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">💊</div>
+      <span class="logo-text">MediMind</span>
+    </div>
+    <h2 class="auth-title" id="auth-heading">Welcome back</h2>
+    <p class="auth-sub" id="auth-sub">Sign in to your health dashboard</p>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+
+    <div id="login-form">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="login-email" class="form-input" placeholder="you@email.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="login-pass" class="form-input" placeholder="••••••••"/>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+    </div>
+
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="reg-name" class="form-input" placeholder="Jane Doe"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="reg-email" class="form-input" placeholder="you@email.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="reg-pass" class="form-input" placeholder="min 6 characters"/>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     APP
+═══════════════════════════════════ -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">💊</div>
+      <span class="logo-text">MediMind</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Menu</div>
+      <button class="nav-item active" onclick="showPage('dashboard', this)">
+        <span class="nav-icon">🏠</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="showPage('reminders', this)">
+        <span class="nav-icon">⏰</span> Medicine Reminders
+        <span class="notif-dot" id="reminder-dot"></span>
+      </button>
+      <button class="nav-item" onclick="showPage('chat', this)">
+        <span class="nav-icon">🤖</span> AI Health Chat
+      </button>
+      <button class="nav-item" onclick="showPage('symptoms', this)">
+        <span class="nav-icon">🔍</span> Symptom Checker
+      </button>
+    </div>
+
+    <div style="padding: 12px 12px 0">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">J</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-name">Jane Doe</div>
+          <div class="user-role">Patient</div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Logout">⎋</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <h1 class="page-title">Good <span id="greeting-time">morning</span>, <span id="greeting-name">Jane</span> 👋</h1>
+        <p class="page-sub" id="dashboard-date">Sunday, April 6, 2025</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Today's Medicines</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">scheduled today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Taken</div>
+          <div class="stat-value" id="stat-taken" style="color:var(--accent)">0</div>
+          <div class="stat-sub">completed ✓</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="stat-pending" style="color:var(--warn)">0</div>
+          <div class="stat-sub">left to take</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">⏰ Today's Schedule</div>
+          <div id="today-schedule">
+            <div class="empty-state">
+              <div class="icon">💊</div>
+              <p>No medicines scheduled yet.<br>Add some in Medicine Reminders!</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 Health Tips</div>
+          <div style="display:flex; flex-direction:column; gap:12px; font-size:14px; color:var(--muted); line-height:1.7">
+            <div style="padding:12px; background:var(--surface2); border-radius:10px; border-left: 3px solid var(--accent)">
+              💧 <strong style="color:var(--text)">Stay Hydrated</strong><br>
+              Drink at least 8 glasses of water daily. Most medications absorb better with water.
+            </div>
+            <div style="padding:12px; background:var(--surface2); border-radius:10px; border-left: 3px solid var(--accent2)">
+              🥗 <strong style="color:var(--text)">Take with Food</strong><br>
+              Some medicines should be taken with meals to avoid stomach irritation.
+            </div>
+            <div style="padding:12px; background:var(--surface2); border-radius:10px; border-left: 3px solid var(--warn)">
+              ⏱️ <strong style="color:var(--text)">Consistency is Key</strong><br>
+              Take medicines at the same time each day for the best effect.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MEDICINE REMINDERS ── -->
+    <div id="page-reminders" class="page">
+      <div class="page-header">
+        <h1 class="page-title">Medicine Reminders 💊</h1>
+        <p class="page-sub">Manage your daily medication schedule</p>
+      </div>
+
+      <div class="reminder-form">
+        <div class="card-title" style="margin-bottom:16px">➕ Add New Medicine</div>
+        <div class="form-row">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Medicine Name</label>
+            <input type="text" id="med-name" class="form-input" placeholder="e.g. Paracetamol 500mg"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Dosage</label>
+            <input type="text" id="med-dose" class="form-input" placeholder="e.g. 1 tablet"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Time of Day</label>
+            <select id="med-time" class="form-input">
+              <option value="morning">🌅 Morning</option>
+              <option value="afternoon">☀️ Afternoon</option>
+              <option value="evening">🌇 Evening</option>
+              <option value="night">🌙 Night</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="addMedicine()">+ Add</button>
+        </div>
+        <div class="form-group" style="margin-top:12px; margin-bottom:0">
+          <label class="form-label">Specific Time (optional)</label>
+          <input type="time" id="med-specific-time" class="form-input" style="max-width:200px"/>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px; display:flex; justify-content:flex-end"><button id="reminder-email-btn" class="btn-primary" onclick="sendEmailReminder()" style="font-size:14px; padding:10px 20px">📧 Send Email Reminder</button></div>
+      <div id="medicine-list" class="medicine-list">
+        <div class="empty-state">
+          <div class="icon">💊</div>
+          <p>No medicines added yet.<br>Use the form above to add your medications.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AI CHAT ── -->
+    <div id="page-chat" class="page">
+      <div class="page-header">
+        <h1 class="page-title">AI Health Chat 🤖</h1>
+        <p class="page-sub">Ask anything about your health, medications, or symptoms</p>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg ai">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble">Hello! I'm your MediMind AI assistant. I can help you with health questions, medication information, and general wellness advice. What's on your mind?<br><br><em style="font-size:12px; opacity:0.7">Note: I'm an AI assistant. Always consult a doctor for medical decisions.</em></div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" class="chat-input" id="chat-input" placeholder="Ask about symptoms, medicines, health tips..." onkeydown="if(event.key==='Enter') sendChat()"/>
+          <button class="btn-send" id="send-btn" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SYMPTOM CHECKER ── -->
+    <div id="page-symptoms" class="page">
+      <div class="page-header">
+        <h1 class="page-title">Symptom Checker 🔍</h1>
+        <p class="page-sub">Select your symptoms to get AI-powered health insights</p>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">Common Symptoms — tap to select</div>
+        <div class="symptom-grid" id="symptom-grid">
+          <!-- injected by JS -->
+        </div>
+        <div class="symptom-custom">
+          <input type="text" id="custom-symptom" class="form-input" placeholder="Type a custom symptom..." style="flex:1" onkeydown="if(event.key==='Enter') addCustomSymptom()"/>
+          <button class="btn-add" onclick="addCustomSymptom()">Add</button>
+        </div>
+        <div class="card-title" style="margin-bottom:8px; color:var(--muted)">Selected symptoms:</div>
+        <div id="selected-symptoms" class="selected-symptoms">
+          <span style="font-size:13px; color:var(--muted); align-self:center">No symptoms selected yet...</span>
+        </div>
+        <button class="btn-primary" onclick="checkSymptoms()" style="margin-top:4px">Analyze Symptoms →</button>
+      </div>
+
+      <div id="symptom-result" class="symptom-result"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// ═══════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════
+const BACKEND = "https://tatvanova-medimind.onrender.com";
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let currentUser = null;
+let medicines = [];
+
+// ═══════════════════════════════════
+// AUTH
+// ═══════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.textContent.toLowerCase().includes(tab === "login" ? "sign" : "reg")));
+  document.getElementById("login-form").style.display = tab === "login" ? "block" : "none";
+  document.getElementById("register-form").style.display = tab === "register" ? "block" : "none";
+  document.getElementById("auth-heading").textContent = tab === "login" ? "Welcome back" : "Create account";
+  document.getElementById("auth-sub").textContent = tab === "login" ? "Sign in to your health dashboard" : "Start your health journey today";
+  document.getElementById("auth-error").style.display = "none";
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById("auth-error");
+  el.textContent = msg; el.style.display = "block";
+}
+
+async function doLogin() {
+  const email = document.getElementById("login-email").value.trim();
+  const pass = document.getElementById("login-pass").value;
+  if (!email || !pass) return showAuthError("Please fill all fields.");
+  try {
+    const res = await fetch(`${BACKEND}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) return showAuthError(data.error || "Login failed.");
+    loginUser(data.user);
+  } catch(e) {
+    showAuthError("Cannot reach server. Try again.");
+  }
+}
+
+async function doRegister() {
+  const name = document.getElementById("reg-name").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+  const pass = document.getElementById("reg-pass").value;
+  if (!name || !email || !pass) return showAuthError("Please fill all fields.");
+  if (pass.length < 6) return showAuthError("Password must be at least 6 characters.");
+  try {
+    const res = await fetch(`${BACKEND}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) return showAuthError(data.error || "Registration failed.");
+    loginUser(data.user);
+  } catch(e) {
+    showAuthError("Cannot reach server. Try again.");
+  }
+}
+
+function loginUser(user) {
+  currentUser = user;
+  localStorage.setItem("mm_current", JSON.stringify(user));
+  document.getElementById("auth-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("sidebar-name").textContent = user.name;
+  document.getElementById("sidebar-avatar").textContent = user.name[0].toUpperCase();
+  document.getElementById("greeting-name").textContent = user.name.split(" ")[0];
+  updateGreeting();
+  loadMedicines();
+}
+
+function logout() {
+  currentUser = null;
+  medicines = [];
+  localStorage.removeItem("mm_current");
+  document.getElementById("app").style.display = "none";
+  document.getElementById("auth-screen").style.display = "flex";
+}
+
+// ── Auto-login ──
+(function() {
+  const saved = localStorage.getItem("mm_current");
+  if (saved) { try { loginUser(JSON.parse(saved)); } catch(e) {} }
+})();
+
+// ═══════════════════════════════════
+// NAV
+// ═══════════════════════════════════
+function showPage(name, el) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  el.classList.add("active");
+}
+
+// ═══════════════════════════════════
+// MEDICINE REMINDERS — Backend-connected
+// ═══════════════════════════════════
+async function loadMedicines() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${BACKEND}/medicines/${currentUser.id}`);
+    const data = await res.json();
+    medicines = data.medicines || [];
+
+    // Daily reset: if any medicine was last saved on a different day, reset it
+    const today = new Date().toDateString();
+    const lastDay = localStorage.getItem("mm_last_day");
+    if (lastDay !== today) {
+      localStorage.setItem("mm_last_day", today);
+      await resetMedicines();
+      return; // resetMedicines calls loadMedicines again
+    }
+
+    renderMedicines();
+    updateDashboard();
+  } catch(e) {
+    console.error("Failed to load medicines", e);
+  }
+}
+
+async function resetMedicines() {
+  if (!currentUser) return;
+  try {
+    await fetch(`${BACKEND}/medicines/reset/${currentUser.id}`, { method: "POST" });
+    await loadMedicines();
+  } catch(e) {}
+}
+
+async function addMedicine() {
+  const name = document.getElementById("med-name").value.trim();
+  const dose = document.getElementById("med-dose").value.trim();
+  const time = document.getElementById("med-time").value;
+  const specific = document.getElementById("med-specific-time").value;
+  if (!name) { alert("Please enter a medicine name."); return; }
+  if (!currentUser) return;
+
+  try {
+    const res = await fetch(`${BACKEND}/medicines`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUser.id, name, dose, time, specificTime: specific || "" })
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || "Failed to add medicine."); return; }
+    medicines.push(data.medicine);
+    renderMedicines();
+    updateDashboard();
+    document.getElementById("med-name").value = "";
+    document.getElementById("med-dose").value = "";
+    document.getElementById("med-specific-time").value = "";
+  } catch(e) {
+    alert("Cannot reach server.");
+  }
+}
+
+async function toggleTaken(id) {
+  try {
+    const res = await fetch(`${BACKEND}/medicines/${id}/toggle`, { method: "PATCH" });
+    const data = await res.json();
+    if (!res.ok) return;
+    const idx = medicines.findIndex(m => m.id === id);
+    if (idx !== -1) medicines[idx] = data.medicine;
+    renderMedicines();
+    updateDashboard();
+  } catch(e) {
+    alert("Cannot reach server.");
+  }
+}
+
+async function deleteMedicine(id) {
+  try {
+    await fetch(`${BACKEND}/medicines/${id}`, { method: "DELETE" });
+    medicines = medicines.filter(m => m.id !== id);
+    renderMedicines();
+    updateDashboard();
+  } catch(e) {
+    alert("Cannot reach server.");
+  }
+}
+
+const timeIcons = { morning: "🌅", afternoon: "☀️", evening: "🌇", night: "🌙" };
+const timeColors = { morning: "morning", afternoon: "afternoon", evening: "evening", night: "night" };
+
+function renderMedicines() {
+  const container = document.getElementById("medicine-list");
+
+  if (medicines.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">💊</div><p>No medicines added yet.<br>Use the form above to add your medications.</p></div>`;
+    updateReminderDot();
+    return;
+  }
+
+  const order = ["morning","afternoon","evening","night"];
+  const sorted = [...medicines].sort((a,b) => order.indexOf(a.time) - order.indexOf(b.time));
+
+  container.innerHTML = sorted.map(med => `
+    <div class="medicine-item ${med.taken ? "taken" : ""}" id="med-item-${med.id}">
+      <div class="med-icon ${timeColors[med.time]}">${timeIcons[med.time]}</div>
+      <div class="med-info">
+        <div class="med-name">${escHtml(med.name)}</div>
+        <div class="med-meta">${escHtml(med.dose || "No dosage specified")} · ${capitalize(med.time)}${med.specificTime ? " · " + med.specificTime : ""}</div>
+      </div>
+      <span class="med-time">${med.taken ? "✓ Taken" : "Pending"}</span>
+      <div class="med-actions">
+        <button class="btn-take ${med.taken ? "taken-btn" : ""}" onclick="toggleTaken('${med.id}')">
+          ${med.taken ? "✓ Taken" : "Mark Taken"}
+        </button>
+        <button class="btn-del" onclick="deleteMedicine('${med.id}')">🗑</button>
+      </div>
+    </div>
+  `).join("");
+
+  updateReminderDot();
+}
+
+function updateReminderDot() {
+  const pending = medicines.some(m => !m.taken);
+  document.getElementById("reminder-dot").style.display = pending ? "inline-block" : "none";
+}
+
+// ═══════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════
+function updateGreeting() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
+  document.getElementById("greeting-time").textContent = greet;
+  document.getElementById("dashboard-date").textContent = new Date().toLocaleDateString("en-IN", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+}
+
+function updateDashboard() {
+  const total = medicines.length;
+  const taken = medicines.filter(m => m.taken).length;
+  const pending = total - taken;
+
+  document.getElementById("stat-total").textContent = total;
+  document.getElementById("stat-taken").textContent = taken;
+  document.getElementById("stat-pending").textContent = pending;
+
+  const sched = document.getElementById("today-schedule");
+  if (medicines.length === 0) {
+    sched.innerHTML = `<div class="empty-state"><div class="icon">💊</div><p>No medicines scheduled yet.<br>Add some in Medicine Reminders!</p></div>`;
+    return;
+  }
+
+  const order = ["morning","afternoon","evening","night"];
+  const sorted = [...medicines].sort((a,b) => order.indexOf(a.time) - order.indexOf(b.time));
+  const dotColors = { morning: "#ffaa00", afternoon: "#0099ff", evening: "#00e5a0", night: "#6c46c8" };
+
+  sched.innerHTML = sorted.map(med => `
+    <div class="schedule-item">
+      <div class="schedule-dot" style="background:${dotColors[med.time]}"></div>
+      <div class="schedule-info">
+        <div class="schedule-name">${escHtml(med.name)}</div>
+        <div class="schedule-time">${capitalize(med.time)}${med.specificTime ? " · " + med.specificTime : ""} · ${escHtml(med.dose||"")}</div>
+      </div>
+      <span class="badge ${med.taken ? "badge-taken" : "badge-pending"}">${med.taken ? "Taken" : "Pending"}</span>
+    </div>
+  `).join("");
+}
+
+// ═══════════════════════════════════
+// AI CHAT
+// ═══════════════════════════════════
+async function sendChat() {
+  const input = document.getElementById("chat-input");
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const btn = document.getElementById("send-btn");
+  btn.disabled = true;
+  input.value = "";
+
+  appendMsg("user", msg);
+  const typingId = appendTyping();
+
+  try {
+    const res = await fetch(`${BACKEND}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg })
+    });
+    const data = await res.json();
+    removeTyping(typingId);
+    const text = data?.content?.[0]?.text || "⚠️ No response from AI.";
+    appendMsg("ai", text);
+  } catch(e) {
+    removeTyping(typingId);
+    appendMsg("ai", `⚠️ Could not connect to backend.`);
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+function appendMsg(role, text) {
+  const box = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.className = `msg ${role}`;
+  const avatar = role === "user" ? (currentUser?.name?.[0]?.toUpperCase() || "U") : "🤖";
+  div.innerHTML = `<div class="msg-avatar">${avatar}</div><div class="msg-bubble">${text.replace(/\n/g,"<br>")}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function appendTyping() {
+  const box = document.getElementById("chat-messages");
+  const id = "typing-" + Date.now();
+  box.innerHTML += `<div class="msg ai" id="${id}"><div class="msg-avatar">🤖</div><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  box.scrollTop = box.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ═══════════════════════════════════
+// SYMPTOM CHECKER
+// ═══════════════════════════════════
+const commonSymptoms = [
+  "Headache","Fever","Cough","Cold","Sore Throat","Fatigue","Nausea",
+  "Vomiting","Diarrhea","Body Ache","Chest Pain","Shortness of Breath",
+  "Dizziness","Stomach Pain","Back Pain","Joint Pain","Rash","Insomnia",
+  "Loss of Appetite","Runny Nose","Ear Pain","Eye Irritation","Anxiety","Weakness"
+];
+
+let selectedSymptoms = [];
+
+function initSymptoms() {
+  const grid = document.getElementById("symptom-grid");
+  grid.innerHTML = commonSymptoms.map(s => `
+    <div class="symptom-tag" id="st-${s.replace(/\s+/g,"-")}" onclick="toggleSymptom('${s}', this)">
+      ${s}
+    </div>
+  `).join("");
+}
+
+function toggleSymptom(name, el) {
+  if (selectedSymptoms.includes(name)) {
+    selectedSymptoms = selectedSymptoms.filter(s => s !== name);
+    el.classList.remove("selected");
+  } else {
+    selectedSymptoms.push(name);
+    el.classList.add("selected");
+  }
+  renderSelectedSymptoms();
+}
+
+function addCustomSymptom() {
+  const inp = document.getElementById("custom-symptom");
+  const val = inp.value.trim();
+  if (!val || selectedSymptoms.includes(val)) return;
+  selectedSymptoms.push(val);
+  inp.value = "";
+  renderSelectedSymptoms();
+}
+
+function renderSelectedSymptoms() {
+  const box = document.getElementById("selected-symptoms");
+  if (selectedSymptoms.length === 0) {
+    box.innerHTML = `<span style="font-size:13px; color:var(--muted); align-self:center">No symptoms selected yet...</span>`;
+    return;
+  }
+  box.innerHTML = selectedSymptoms.map(s => `
+    <div class="sel-chip">${escHtml(s)} <span class="rm" onclick="removeSymptom('${escHtml(s)}')">✕</span></div>
+  `).join("");
+}
+
+function removeSymptom(name) {
+  selectedSymptoms = selectedSymptoms.filter(s => s !== name);
+  const el = document.getElementById("st-" + name.replace(/\s+/g,"-"));
+  if (el) el.classList.remove("selected");
+  renderSelectedSymptoms();
+}
+
+async function checkSymptoms() {
+  if (selectedSymptoms.length === 0) { alert("Please select at least one symptom."); return; }
+  const result = document.getElementById("symptom-result");
+  result.style.display = "block";
+  result.innerHTML = `<div class="typing" style="display:inline-flex; margin:8px 0"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div> <em style="color:var(--muted)">Analyzing symptoms...</em>`;
+
+  try {
+    const res = await fetch(`${BACKEND}/symptoms`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ symptoms: selectedSymptoms })
+    });
+    const data = await res.json();
+    const text = data?.content?.[0]?.text || "⚠️ No response.";
+    result.textContent = text;
+  } catch(e) {
+    result.innerHTML = `⚠️ Could not connect to backend.`;
+  }
+}
+
+// ═══════════════════════════════════
+// EMAIL REMINDER
+// ═══════════════════════════════════
+async function sendEmailReminder() {
+  if (!currentUser) return;
+  const btn = document.getElementById("reminder-email-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Sending..."; }
+  try {
+    const res = await fetch(`${BACKEND}/send-reminder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: currentUser.email, userName: currentUser.name, medicines })
+    });
+    const data = await res.json();
+    alert(data.message || "Reminder sent!");
+  } catch(e) {
+    alert("Failed to send reminder.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "📧 Send Email Reminder"; }
+  }
+}
+
+// ═══════════════════════════════════
+// UTILS
+// ═══════════════════════════════════
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+initSymptoms();
+</script>
+</body>
+</html>

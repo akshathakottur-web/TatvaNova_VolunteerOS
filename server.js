@@ -319,6 +319,9 @@ app.post("/send-reminder", async (req, res) => {
 app.get("/test", (req, res) => {
   res.send("Backend is working ✅");
 });
+app.get("/", (req, res) => {
+  res.send("MediMind API is running 🚀");
+});
 
 // 🚀 START SERVER
 const PORT = process.env.PORT || 3000;

@@ -321,10 +321,11 @@ app.get("/test", (req, res) => {
 });
 
 // 🚀 START SERVER
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+app.get("/", (req, res) => {
+  res.send("MediMind AI backend is running 🚀");
+});

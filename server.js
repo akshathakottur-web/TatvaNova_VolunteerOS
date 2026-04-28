@@ -5,6 +5,13 @@ import nodemailer from "nodemailer";
 import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
+import path from "path";
+
+app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.resolve("public/index.html"));
+});
 
 dotenv.config();
 

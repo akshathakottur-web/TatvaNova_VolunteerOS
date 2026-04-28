@@ -1,2 +1,2 @@
-# TatvaNova_VolunteerOS
-VolunteerOS uses a skills graph, demand prediction, and a scoring-based assignment engine to match volunteers to tasks efficiently, improving coordination and reducing manual effort in large-scale events.
+# TatvaNova_Medimind
+MediMind AI is an intelligent healthcare platform designed to enhance medical decision-making and improve patient care using advanced artificial intelligence. It serves as a smart digital assistant for both patients and healthcare professionals, providing real-time insights, symptom guidance, and personalized health recommendations.
